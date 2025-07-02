@@ -598,8 +598,8 @@
 
                     // 標準クロップ
                     const canvas = performStandardCrop(img);
-                    croppedSrc = canvas.toDataURL('image/jpeg', 0.9);
-                    croppedOriginalSrc = canvas.toDataURL('image/jpeg', 0.9);
+                    croppedSrc = canvas.toDataURL('image/jpeg', 0.95);
+                    croppedOriginalSrc = canvas.toDataURL('image/jpeg', 0.95);
                     
                     if (faceApiLoaded) {
                         try {
@@ -662,8 +662,8 @@
             const cropWidth = Math.min(img.width - cropX, faceWidth + margin.left + margin.right);
             const cropHeight = Math.min(img.height - cropY, faceHeight + margin.top + margin.bottom);
             
-            // 3:4比率に調整
-            const targetRatio = 3 / 4;
+            // 4:5比率に調整
+            const targetRatio = 4 / 5;
             let finalWidth = cropWidth;
             let finalHeight = cropHeight;
             
@@ -673,13 +673,13 @@
                 finalHeight = finalWidth / targetRatio;
             }
             
-            // キャンバスサイズ設定（証明写真サイズ）
-            canvas.width = 300;
-            canvas.height = 400;
+            // キャンバスサイズ設定（パスポート写真サイズ）
+            canvas.width = 400;
+            canvas.height = 500;
             
             // 白背景
             ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, 300, 400);
+            ctx.fillRect(0, 0, 400, 500);
             
             // クロップした画像を描画
             const centerX = cropX + cropWidth / 2;
@@ -690,7 +690,7 @@
             ctx.drawImage(
                 img,
                 sourceX, sourceY, finalWidth, finalHeight,
-                0, 0, 300, 400
+                0, 0, 400, 500
             );
             
             return canvas.toDataURL('image/jpeg', 0.95);
@@ -719,16 +719,16 @@
                 sourceY = (originalHeight - sourceHeight) / 2;
             }
             
-            canvas.width = 300;
-            canvas.height = 400;
+            canvas.width = 400;
+            canvas.height = 500;
             
             ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, 300, 400);
+            ctx.fillRect(0, 0, 400, 500);
             
             ctx.drawImage(
                 img,
                 sourceX, sourceY, sourceWidth, sourceHeight,
-                0, 0, 300, 400
+                0, 0, 400, 500
             );
             
             return canvas;
