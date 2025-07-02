@@ -536,8 +536,12 @@
             
             imageFiles.forEach((file, index) => {
                 setTimeout(() => {
-                    if (file.size < 1024 * 1024 * 2) {
-                        alert('ファイルサイズは2MB以上にしてください');
+                    if (file.size < 1024 * 1024 * 1) {
+                        alert('ファイルサイズが1MB以上のものを選んでください');
+                        return;
+                    }
+                    if (file.size > 1024 * 1024 * 10) {
+                        alert('ファイルサイズが10MB以下のものを選んでください');
                         return;
                     }
 
@@ -559,11 +563,11 @@
                 const originalSrc = e.target.result;
                 
                 // Face-API.jsを使用して顔検出とクロップ
-                const { croppedSrc, faceDetected } = await cropImageWithFaceAPI(originalSrc);
+                const { croppedSrc, croppedOriginalSrc, faceDetected } = await cropImageWithFaceAPI(originalSrc);
                 
                 const imageData = {
                     id: Date.now() + Math.random(),
-                    originalSrc: originalSrc,
+                    originalSrc: croppedOriginalSrc,
                     croppedSrc: croppedSrc,
                     currentSrc: croppedSrc,
                     isCropped: true,
@@ -590,6 +594,12 @@
                 img.onload = async () => {
                     let faceDetected = false;
                     let croppedSrc;
+                    let croppedOriginalSrc;
+
+                    // 標準クロップ
+                    const canvas = performStandardCrop(img);
+                    croppedSrc = canvas.toDataURL('image/jpeg', 0.9);
+                    croppedOriginalSrc = canvas.toDataURL('image/jpeg', 0.9);
                     
                     if (faceApiLoaded) {
                         try {
@@ -606,25 +616,19 @@
                                 croppedSrc = await cropToFaceRegionWithAPI(img, detection);
                             } else {
                                 // 顔が検出されなかった場合は標準クロップ
-                                const canvas = performStandardCrop(img);
-                                croppedSrc = canvas.toDataURL('image/jpeg', 0.9);
                                 console.log('検出されてないっす')
                             }
                         } catch (error) {
                             console.error('Face detection error:', error);
                             // エラーの場合は標準クロップ
-                            const canvas = performStandardCrop(img);
-                            croppedSrc = canvas.toDataURL('image/jpeg', 0.9);
                             console.log('エラーっす')
                         }
                     } else {
                         // Face-API.jsが読み込まれていない場合は標準クロップ
-                        const canvas = performStandardCrop(img);
-                        croppedSrc = canvas.toDataURL('image/jpeg', 0.9);
                         console.log('がちのエラーっす')
                     }
                     
-                    resolve({ croppedSrc, faceDetected });
+                    resolve({ croppedSrc, croppedOriginalSrc, faceDetected });
                 };
                 img.src = imageSrc;
             });
@@ -743,16 +747,11 @@
             previewDiv.innerHTML = `
                 <img src="${imageData.currentSrc}" alt="${imageData.name}">
                 <div class="crop-controls">
-                    <button class="crop-btn ${imageData.isCropped ? 'active' : ''}" onclick="toggleCrop(${imageData.id}, true)">3:4</button>
-                    <button class="crop-btn ${!imageData.isCropped ? 'active' : ''}" onclick="toggleCrop(${imageData.id}, false)">元</button>
+                    <button class="crop-btn ${imageData.isCropped ? 'active' : ''}" onclick="toggleCrop(${imageData.id}, true)">顔抽出</button>
+                    <button class="crop-btn ${!imageData.isCropped ? 'active' : ''}" onclick="toggleCrop(${imageData.id}, false)">通常</button>
                 </div>
                 ${faceDetectionBadge}
                 <button class="delete-btn" onclick="deleteImage(${imageData.id})">&times;</button>
-                <div class="image-info">
-                    <div><strong>${imageData.name}</strong></div>
-                    <div>${formatFileSize(imageData.size)} ${imageData.isCropped ? '(3:4)' : '(元画像)'}</div>
-                    ${imageData.faceDetected ? '<div style="font-size: 0.8rem; color: #2ed573;">🤖 AI顔検出適用済み</div>' : ''}
-                </div>
             `;
 
             previewContainer.appendChild(previewDiv);
@@ -785,14 +784,12 @@
                 imageData.currentSrc = imageData.croppedSrc;
                 imageData.isCropped = true;
                 imgElement.src = imageData.croppedSrc;
-                infoElement.textContent = `${formatFileSize(imageData.size)} (3:4)`;
                 cropButtons[0].classList.add('active');
                 cropButtons[1].classList.remove('active');
             } else {
                 imageData.currentSrc = imageData.originalSrc;
                 imageData.isCropped = false;
                 imgElement.src = imageData.originalSrc;
-                infoElement.textContent = `${formatFileSize(imageData.size)} (元画像)`;
                 cropButtons[0].classList.remove('active');
                 cropButtons[1].classList.add('active');
             }
@@ -910,13 +907,13 @@
             // 実際のサーバー送信処理をここに実装
             console.log('送信データ:', formData);
 
-            uploadedImages.forEach(imageData => {
+            uploadedImages.forEach((imageData, i) => {
                 fetch('upload.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ image: imageData.currentSrc, userinfo: grade + '_' + lastName + '_' + firstName })
+                    body: JSON.stringify({ image: imageData.currentSrc, userinfo: grade + '_' + lastName + '_' + firstName + '_' + i })
                 })
                 .then(res => res.text())
                 .then(data => {
@@ -930,10 +927,10 @@
 
 
             // 送信成功のメッセージ
-            alert(`${formData.fullName}様（${formData.grade}）\n${uploadedImages.length}枚の写真を送信しました！\n\n送信データ:\n- 名前: ${formData.fullName}\n- 学年: ${formData.grade}\n- 画像数: ${formData.totalImages}枚\n- 合計サイズ: ${formatFileSize(formData.totalSize)}`);
+            alert(`${formData.fullName}様\n${uploadedImages.length}枚の写真を送信しました！\n\n送信データ:\n- 名前: ${formData.fullName}\n- 学年: ${formData.grade}\n- 画像数: ${formData.totalImages}枚\n- 合計サイズ: ${formatFileSize(formData.totalSize)}`);
             
             // フォームリセット（オプション）
-            // resetForm();
+            resetForm();
         }
 
         // フォームリセット関数

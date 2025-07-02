@@ -24,7 +24,7 @@ if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $matches)) {
         exit;
     }
 
-    $fileName = 'uploads/' . $userinfo . uniqid() . '.' . $imageType;
+    $fileName = 'uploads/' . $userinfo . '.' . $imageType;
     file_put_contents($fileName, $base64);
 
     echo '画像保存完了: ' . $fileName;
