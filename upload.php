@@ -27,7 +27,7 @@ if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $matches)) {
     $fileName = 'uploads/' . $userinfo . '.' . $imageType;
     file_put_contents($fileName, $base64);
 
-    echo '画像保存完了: ' . $fileName;
+    // echo '画像保存完了: ' . $fileName;
 } else {
     http_response_code(400);
     echo '画像データ形式が不正です';

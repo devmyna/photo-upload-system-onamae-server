@@ -379,18 +379,19 @@
                 <label for="grade">学年 *</label>
                 <select id="grade" required>
                     <option value="">学年を選択してください</option>
+                    <option value="未就学児">未就学児</option>
                     <option value="ほし">ほし</option>
-                    <option value="めばえ">めばえ</option>
                     <option value="年中">年中</option>
                     <option value="年長">年長</option>
+                    <option value="小学生以上">小学生以上</option>
                 </select>
             </div>
             <div class="input-group">
-                <label for="lastName">園児の苗字(Family name) *</label>
+                <label for="lastName">お子様の苗字(Family name) *</label>
                 <input type="text" id="lastName" placeholder="山田" required>
             </div>
             <div class="input-group">
-                <label for="firstName">園児の名前(Given name) *</label>
+                <label for="firstName">お子様の名前(Given name) *</label>
                 <input type="text" id="firstName" placeholder="太郎" required>
             </div>
         </div>
@@ -881,8 +882,8 @@
                 return;
             }
             
-            if (uploadedImages.length === 0) {
-                alert('写真を追加してください。');
+            if (uploadedImages.length != 1) {
+                alert('写真は1枚にしてください。');
                 return;
             }
 
@@ -917,11 +918,11 @@
                 })
                 .then(res => res.text())
                 .then(data => {
-                    alert('アップロード成功: ' + data);
+                    console.log('アップロード成功: ' + data);
                 })
                 .catch(err => {
                     console.error(err);
-                    alert('アップロード失敗');
+                    // alert('アップロード失敗');
                 });
             });
 
